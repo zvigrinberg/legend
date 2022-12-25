@@ -7,8 +7,8 @@ replicaCount: 1
 env:
   GITLAB_URL: "gitlab.com"
   LEGEND_HOST: "legend-legend.apps.tran-temenos.kni.syseng.devcluster.openshift.com" # e.g. hostip.nip.io
-  GITLAB_OAUTH_CLIENT_ID: "3711253378c127f98b2a6b4701cae567e43c8cfb28f9205c6b533c4e4daea92c"
-  GITLAB_OAUTH_SECRET: "39ba2d686f3dbae5a6a5f5c0e68e68a287ce97b2f4043cfe2ae1ccd0b2c9d52d"
+  GITLAB_OAUTH_CLIENT_ID: ""
+  GITLAB_OAUTH_SECRET: ""
   HTTP_MODE: "http" # https or http
   TLS_SECRET: ""
 
