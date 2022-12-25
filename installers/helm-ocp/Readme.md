@@ -1,6 +1,6 @@
 # Helm Chart for Legend with remote instance of Gitlab
 
-This repo contains helm chart to deploy Legend Studio on OCP(Openshift Container Platform)
+This Guide contains Instructions to deploy Legend Studio on OCP(Openshift Container Platform) using helm chart.
 
 Requirements:
 - Have access to an Openshift Container Platform Cluster
@@ -50,7 +50,8 @@ http://$LEGEND_HOST_DOMAIN/studio/log.in/callback
 ```
 - Enable the "Confidential" check box
 - Enable these scopes: openid, profile, api
-- Finally, "Save Application"
+- Click on "Save Application"
+- Copy aside OAuth Client Id + Oauth Secret(for overriding GITLAB_OAUTH_CLIENT_ID + GITLAB_OAUTH_SECRET in values.yaml using helm install --set flag)
 
 6. Install helm chart
 ```
