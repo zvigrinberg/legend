@@ -1,70 +1,73 @@
 # Helm Chart for Legend with remote instance of Gitlab
 
-This repo contains helm chart to deploy Legend Studio.
+This repo contains helm chart to deploy Legend Studio on OCP(Openshift Container Platform)
 
 Requirements:
-- CNCF Kubernetes Cluster (RKE2/K3s/RKE)
+- Have access to an Openshift Container Platform Cluster
+- oc CLI installed
+- Have a cluster-admin privileges
+- gitlab account at gitlab.com
 
-1. Clone Helm Chart Repo
+1. Connect to openshift cluster
+```shell
+# Using user and password
+ oc login -u youruser -p yourpassword --server=https://ocpServerDns:6443
+
+# Using access token(service account's one or temporary token from OCP Web Console):
+oc login --token=sha256~xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx --server=https://ocpServerDns:6443
 ```
-git clone --depth 1 https://github.com/naeemarsalan/legend
+
+2. Create a new project
+```shell
+oc new-project legend
 ```
 
-2. Gitlab OAuth config setup
+3. Add `anyuid` SecurityContextConstraint to serviceAccount `default` on that project
+```shell
+oc adm policy add-scc-to-user anyuid -z default
+```
 
-If you don't already have a Gitlab OAuth application, first, navigate to `User Settings > Applications` and create an application with the following parameters:
+4. Get Cluster ingress Domain and compose a host name for legend using it:
+```shell
+export CLUSTER_DOMAIN=$(oc get route -n openshift-console console -ojsonpath='{.status.ingress[0].host}' | awk -F . '{$1="";print $0}' | tr ' ' '.' | sed -E 's/^.//g')
+export LEGEND_HOST_DOMAIN=legend-legend.$CLUSTER_DOMAIN
+# See the domain calculated for LEGEND HOST:
+echo $LEGEND_HOST_DOMAIN
+
+```
+
+5. Gitlab OAuth config setup
+
+If you don't already have a Gitlab OAuth application, first, enter gitlab.com with your credentials, navigate to `User Settings > Applications` and create an application with the following parameters:
 
 - Name: Legend Demo
 - Redirect URI:
 ```
-http://{HOST IP}.sslip.io/callback
-http://{HOST IP}.sslip.io/api/auth/callback
-http://{HOST IP}.sslip.io/api/pac4j/login/callback
-http://{HOST IP}.sslip.io/studio/log.in/callback
+http://$LEGEND_HOST_DOMAIN/engine/callback
+http://$LEGEND_HOST_DOMAIN/sdlc/api/auth/callback
+http://$LEGEND_HOST_DOMAIN/sdlc/api/pac4j/login/callback
+http://$LEGEND_HOST_DOMAIN/studio/log.in/callback
 ```
 - Enable the "Confidential" check box
 - Enable these scopes: openid, profile, api
 - Finally, "Save Application"
 
-3. Install helm chart
+6. Install helm chart
 ```
-helm install legend ./legend/installers/helm/ --set env.LEGEND_HOST="{HOST IP}.sslip.io" \
-                                              --set env.GITLAB_OAUTH_CLIENT_ID=""   \
-                                              --set env.GITLAB_OAUTH_SECRET=""      \
+helm install legend -f values-ocp.yaml . --set env.LEGEND_HOST="$LEGEND_HOST_DOMAIN" \
+                                              --set env.GITLAB_OAUTH_CLIENT_ID="clientIdGoesHere"   \
+                                              --set env.GITLAB_OAUTH_SECRET="clientOAuthSecretGoesHere"      \
                                               --namespace legend                    \
-                                              --create-namespace
 ```
-3. Check pods are in running/ready state
+7. Wait until pods are in running/ready state
 ```
-kubectl get pods -n legend
-```
-
-4. Browse to http://{HOST IP}.sslip.io/studio
-
-## SSL Enable
-Same steps as 2. but with https callback url:
-- Redirect URI:
-```
-https://{DNS Hostname}/callback
-https://{DNS Hostname}/api/auth/callback
-https://{DNS Hostname}/api/pac4j/login/callback
-https://{DNS Hostname}/studio/log.in/callback
+oc get pods -n legend -w
 ```
 
-Create Ingress TLS Secret
-```
-kubectl create secret tls tls-legend --cert=fullchain.pem  --key=key.pem -n legend
-```
-
-Install helm chart
-```
-helm install legend ./legend/installers/helm/ --set env.LEGEND_HOST="{DNS Hostname}" \
-                                              --set env.GITLAB_OAUTH_CLIENT_ID="" \
-                                              --set env.GITLAB_OAUTH_SECRET=""    \
-                                              --set env.HTTP_MODE="https"         \
-                                              --set env.TLS_SECRET="tls-legend"   \
-                                              --namespace legend                  \
-                                              --create-namespace
+8. Browse to http://$LEGEND_HOST_DOMAIN/studio, and make sure legend studio is opened:
+```shell
+xdg-open http://$LEGEND_HOST_DOMAIN/studio
 ```
 
-Browse to https://{DNS Hostname}/studio
+
+
