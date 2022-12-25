@@ -1,7 +1,7 @@
 # Helm Chart for Legend with remote instance of Gitlab
 
-This Guide contains Instructions to deploy Legend Studio on OCP(Openshift Container Platform) using helm chart.
-
+This Guide contains Instructions to deploy Legend Studio on OCP(Openshift Container Platform) using helm chart. \
+**Note: It's a slightly modified helm chart based on helm chart from [here](https://github.com/finos/legend-integration-helm/tree/main/charts/legend/1.0.0)** \
 Requirements:
 - Have access to an Openshift Container Platform Cluster
 - oc CLI installed
